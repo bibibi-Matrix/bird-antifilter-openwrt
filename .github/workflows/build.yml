@@ -1,32 +1,53 @@
-name: Build Docker Image for MikroTik
+name: Build OpenWrt packages
 
 on:
   push:
-    branches: [master]
-    tags: ['v*']
+    branches: [ "main", "master" ]
+  pull_request:
   workflow_dispatch:
+    inputs:
+      sdk_tags:
+        description: 'OpenWrt SDK image tags (comma separated), format <target>-<subtarget>[-branch|version]'
+        required: false
+        default: 'x86_64-24.10'
+        type: string
 
 jobs:
   build:
+    name: ${{ matrix.sdk }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: ${{ fromJSON(format('["{0}"]', coalesce(github.event.inputs.sdk_tags, 'x86_64-24.10').replace(/,/g, '","'))) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Build packages in OpenWrt SDK container
+        run: |
+          docker run --privileged --rm \
+            -v "$PWD":/work:ro \
+            -w /builder \
+            ghcr.io/openwrt/sdk:${{ matrix.sdk }} \
+            bash -c '
+              set -e
+              [ -d ./scripts ] || ./setup.sh
+              ./scripts/feeds update base packages routing luci
+              echo "src-link bird /work" >> feeds.conf.default
+              ./scripts/feeds update bird
+              ./scripts/feeds install -a -p bird
+              make defconfig
+              ./scripts/feeds install -d y bird luci-app-bird
+              make package/feeds/bird/bird/compile -j$(nproc)
+              make package/feeds/bird/luci-app-bird/compile -j$(nproc)
+            '
 
-      - name: Build Docker image
-        run: docker build -t bird2-antifilter:latest .
-
-      - name: Export image as tar
-        run: docker save bird2-antifilter:latest -o bird2-antifilter.tar
-
-      - name: Upload tar artifact
+      - name: Upload packages
+        if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          name: bird2-antifilter-mikrotik
-          path: bird2-antifilter.tar
-          retention-days: 30
-
-
+          name: ipk-${{ matrix.sdk }}
+          path: |
+            bin/packages/*/
+          if-no-files-found: warn

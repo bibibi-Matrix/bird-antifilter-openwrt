@@ -1,7 +1,0 @@
-.git
-.gitignore
-*.md
-*.rsc
-custom_lists/
-docker-compose.yml
-.dockerignore

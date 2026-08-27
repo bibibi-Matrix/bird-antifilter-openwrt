@@ -1,15 +1,10 @@
-# Docker
-*.tar
-*.tar.gz
-bird2-state/
-
-# Old config with credentials (root-level only)
-/bird2.conf
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
+# OpenWrt SDK / buildroot artifacts
+bin/
+build_dir/
+dl/
+feeds/
+staging_dir/
+tmp/
+.config
+.config.old
+.config.seed

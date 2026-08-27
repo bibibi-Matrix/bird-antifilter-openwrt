@@ -1,0 +1,52 @@
+config bird 'global'
+	option enabled '1'
+	option router_id 'auto'
+	option local_as '64500'
+	option bird_dir '/etc/bird'
+	option list_dir '/etc/bird/list'
+	option rsc_dir '/etc/bird/list_rsc'
+	option sync_cron '1'
+	option cron_expr '0 3 * * *'
+	option via_interface 'amneziawg0'
+
+# Role "server": advertise the listed routes to an external BGP peer.
+# The local daemon stays passive and waits for the peer to connect.
+config bgp_peer 'peer1'
+	option enabled '1'
+	option role 'server'
+	option neighbor '192.168.34.1'
+	option remote_as '64501'
+	option local_ip '192.168.34.2'
+	option passive '1'
+	option next_hop_self '1'
+
+# Role "client": talk to an upstream peer that the routes are exported
+# to, and install the local static routes into the kernel routing table
+# so they are used for forwarding (default route remains on WAN).
+config bgp_peer 'peer2'
+	option enabled '0'
+	option role 'client'
+	option neighbor '10.0.0.1'
+	option remote_as '64502'
+	option local_ip '10.0.0.2'
+	option passive '0'
+	option next_hop_self '1'
+	option export_kernel '1'
+
+# === Antifilter sources ===
+config source 'antifilter'
+	option antifilter_download '1'
+	option antifilter_network '0'
+	option ip '0'
+	option ipresolve '0'
+	option ipsum '0'
+	option subnet '0'
+	option allyouneed '1'
+	option community '0'
+	option nf_ip '1'
+	option nf_ipsmart '1'
+	option nf_ipsum '1'
+	option nf_subnet '1'
+	option nf_uablacklist '1'
+	option nf_govno '1'
+	option nf_ip6 '1'

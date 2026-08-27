@@ -1,0 +1,14 @@
+#!/bin/sh
+
+mkdir -p /etc/bird/list /etc/bird/list_rsc /etc/bird/list_custom /var/run/bird
+
+# Seed writable custom list dir from bundled samples (first boot only)
+if [ -d /usr/share/bird/list_custom ]; then
+	for f in /usr/share/bird/list_custom/*.lst; do
+		[ -f "$f" ] || continue
+		base=$(basename "$f")
+		[ -f "/etc/bird/list_custom/$base" ] || cp "$f" "/etc/bird/list_custom/$base"
+	done
+fi
+
+exit 0

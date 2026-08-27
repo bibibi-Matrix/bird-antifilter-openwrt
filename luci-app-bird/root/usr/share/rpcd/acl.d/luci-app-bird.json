@@ -1,0 +1,26 @@
+{
+	"luci-app-bird": {
+		"description": "Grant access to BIRD antifilter management",
+		"read": {
+			"uci": [ "bird" ],
+			"ubus": {
+				"luci.bird": [ "status", "syncstatus" ],
+				"service": [ "list" ]
+			},
+			"file": {
+				"/etc/bird/": [ "read" ],
+				"/var/log/bird-sync.log": [ "read" ]
+			}
+		},
+		"write": {
+			"uci": [ "bird" ],
+			"ubus": {
+				"luci.bird": [ "sync", "configure" ],
+				"service": [ "set", "add", "delete" ]
+			},
+			"file": {
+				"/etc/bird/": [ "write" ]
+			}
+		}
+	}
+}
