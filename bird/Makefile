@@ -15,7 +15,7 @@ define Package/bird
   TITLE:=BIRD2 antifilter daemon with UCI configuration
   URL:=https://github.com/bibibi-Matrix/bird-antifilter-mikrotik
   LICENSE:=GPL-2.0-or-later
-  DEPENDS:= +bird2 +bird2c +curl +iproute2 +uci
+  DEPENDS:= +bird2 +bird2c +curl +uci
 endef
 
 define Package/bird/description
