@@ -6,10 +6,12 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
-      sdk_tags:
-        description: 'OpenWrt SDK image tags (comma separated), format <target>-<subtarget>[-branch|version]'
+      sdk_json:
+        description: |
+          JSON array of OpenWrt SDK Docker tags, format <target>-<subtarget>-openwrt-<branch>.
+          Example: ["x86_64-openwrt-25.12","mediatek-filogic-openwrt-25.12"]
         required: false
-        default: 'x86_64-24.10,mediatek-filogic-24.10'
+        default: '["x86_64-openwrt-25.12","mediatek-filogic-openwrt-25.12"]'
         type: string
 
 jobs:
@@ -19,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sdk: ${{ fromJSON(format('["{0}"]', coalesce(github.event.inputs.sdk_tags, 'x86_64-24.10').replace(/,/g, '","'))) }}
+        sdk: ${{ fromJSON(github.event.inputs.sdk_json || '["x86_64-openwrt-25.12","mediatek-filogic-openwrt-25.12"]') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,7 +31,7 @@ jobs:
           docker run --privileged --rm \
             -v "$PWD":/work:ro \
             -w /builder \
-            ghcr.io/openwrt/sdk:${{ matrix.sdk }} \
+            docker.io/openwrt/sdk:${{ matrix.sdk }} \
             bash -c '
               set -e
               [ -d ./scripts ] || ./setup.sh
