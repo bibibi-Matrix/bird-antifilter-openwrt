@@ -106,9 +106,10 @@ make package/feeds/birdwrt/bird/compile package/feeds/birdwrt/luci-app-bird/comp
 ### Непрерывная интеграция
 
 `.github/workflows/build.yml` собирает оба пакета в официальном SDK-контейнере
-(`ghcr.io/openwrt/sdk`, конфигурируемый `sdk_tags` input, по умолчанию
-`x86_64-24.10`). Запускается на push/PR/через `workflow_dispatch`; артефакты
-`.ipk` выгружаются как GitHub Actions artifacts.
+(`ghcr.io/openwrt/sdk`, конфигурируемый `sdk_tags` input; по умолчанию
+`x86_64-24.10,mediatek-filogic-24.10` — последний подходит для Cudy TR3000 /
+Mediatek Filogic `aarch64_cortex-a53`). Запускается на push/PR/через
+`workflow_dispatch`; артефакты `.ipk` выгружаются как GitHub Actions artifacts.
 
 > Примечание: `bird` зависит от `bird2`/`bird2c` из стандартного feed `routing`,
 > поэтому workflow обновляет `base packages routing luci` перед сборкой.

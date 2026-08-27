@@ -9,7 +9,7 @@ on:
       sdk_tags:
         description: 'OpenWrt SDK image tags (comma separated), format <target>-<subtarget>[-branch|version]'
         required: false
-        default: 'x86_64-24.10'
+        default: 'x86_64-24.10,mediatek-filogic-24.10'
         type: string
 
 jobs:
