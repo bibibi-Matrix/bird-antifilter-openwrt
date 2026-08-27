@@ -33,15 +33,10 @@ jobs:
               echo "src-link bird /work" >> feeds.conf.default
               ./scripts/feeds update bird
               ./scripts/feeds install -p luci luci-base luci-mod-rpc luci-lib-ipkg rpcd-mod-ucode ucode-mod-fs ucode-mod-uci
-              ./scripts/feeds install -d y bird luci-app-bird
               ./scripts/feeds install -a -p bird
               make defconfig
-              echo "=== feed list ==="
-              ./scripts/feeds list -f bird
-              echo "=== luci.app.bird info ==="
-              make package/feeds/bird/luci-app-bird/info V=sc 2>&1 || true
-              echo "=== luci-app-bird compile (verbose) ==="
-              make package/feeds/bird/luci-app-bird/compile -j1 V=sc 2>&1 || true
+              make package/feeds/bird/bird/compile -j$(nproc)
+              make package/feeds/bird/luci-app-bird/compile -j$(nproc)
             '
 
       - name: Upload packages
