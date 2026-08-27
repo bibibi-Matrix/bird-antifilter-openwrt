@@ -22,8 +22,9 @@ jobs:
 
       - name: Build packages in OpenWrt SDK container
         run: |
-          docker run --privileged --rm \
-            -v "$PWD":/work:rw \
+          CONTAINER_NAME=birdbuild-${{ strategy.job-index }}
+          docker run --privileged --name $CONTAINER_NAME \
+            -v "$PWD":/work:ro \
             -w /builder \
             docker.io/openwrt/sdk:${{ matrix.sdk }} \
             bash -c '
@@ -38,9 +39,13 @@ jobs:
               make package/feeds/bird/bird/compile -j$(nproc)
               make package/feeds/bird/luci-app-bird/compile -j$(nproc)
               make package/index
-              mkdir -p /work/bin
-              cp -r /builder/bin/. /work/bin/ 2>/dev/null || true
+              echo "=== built packages ==="
+              find /builder/bin/packages -name "*.ipk" -print
             '
+          mkdir -p bin/packages
+          docker cp $CONTAINER_NAME:/builder/bin/packages/. bin/packages/
+          docker rm -f $CONTAINER_NAME
+          sudo chown -R "$USER" bin || true
 
       - name: Upload packages
         if: success() || failure()
