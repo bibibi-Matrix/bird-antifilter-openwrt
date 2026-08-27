@@ -36,8 +36,12 @@ jobs:
               ./scripts/feeds install -d y bird luci-app-bird
               ./scripts/feeds install -a -p bird
               make defconfig
-              make package/feeds/bird/bird/compile -j$(nproc)
-              make package/feeds/bird/luci-app-bird/compile -j$(nproc)
+              echo "=== feed list ==="
+              ./scripts/feeds list -f bird
+              echo "=== luci.app.bird info ==="
+              make package/feeds/bird/luci-app-bird/info V=sc 2>&1 || true
+              echo "=== luci-app-bird compile (verbose) ==="
+              make package/feeds/bird/luci-app-bird/compile -j1 V=sc 2>&1 || true
             '
 
       - name: Upload packages
