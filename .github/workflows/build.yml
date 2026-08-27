@@ -23,7 +23,7 @@ jobs:
       - name: Build packages in OpenWrt SDK container
         run: |
           docker run --privileged --rm \
-            -v "$PWD":/work:ro \
+            -v "$PWD":/work:rw \
             -w /builder \
             docker.io/openwrt/sdk:${{ matrix.sdk }} \
             bash -c '
@@ -36,7 +36,6 @@ jobs:
               make defconfig
               ./scripts/feeds install -d y bird luci-app-bird
               make package/feeds/bird/bird/compile -j$(nproc)
-              make package/feeds/bird/bird/compile -j1 V=s
               make package/feeds/bird/luci-app-bird/compile -j$(nproc)
             '
 
