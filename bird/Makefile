@@ -32,6 +32,9 @@ define Package/bird/conffiles
 /etc/config/bird
 endef
 
+define Build/Compile
+endef
+
 define Package/bird/install
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/etc/init.d/bird $(1)/etc/init.d/bird
