@@ -68,7 +68,7 @@ config source 'antifilter'
 Добавьте в `feeds.conf` вашего OpenWrt-дерева строку:
 
 ```
-src-git birdwrt https://github.com/<your-user>/bird-openwrt.git
+src-git birdwrt https://github.com/bibibi-Matrix/bird-antifilter-openwrt.git
 ```
 
 Затем обновите и установите пакеты:
