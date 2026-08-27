@@ -37,6 +37,9 @@ jobs:
               make defconfig
               make package/feeds/bird/bird/compile -j$(nproc)
               make package/feeds/bird/luci-app-bird/compile -j$(nproc)
+              make package/feeds/bird/bird/install
+              make package/feeds/bird/luci-app-bird/install
+              make package/index
             '
 
       - name: Upload packages
