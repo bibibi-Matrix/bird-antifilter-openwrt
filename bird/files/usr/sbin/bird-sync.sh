@@ -34,7 +34,7 @@ load_global() {
 	BLACKLIST_DIR=$(get_global blacklist_dir)
 	[ -n "$BLACKLIST_DIR" ] || BLACKLIST_DIR="/etc/bird/blacklist"
 	VIA_IFACE=$(get_global via_interface)
-	[ -n "$VIA_IFACE" ] || VIA_IFACE="amneziawg0"
+	[ -n "$VIA_IFACE" ] || VIA_IFACE="awg0"
 }
 
 check_internet() {
@@ -102,6 +102,16 @@ download_antifilter_lists() {
 		fi
 	done
 
+	# custom.lst на antifilter.network лежит по другому пути (/downloads, а не /download)
+	if src_enabled "nf_custom"; then
+		if download_file "https://antifilter.network/downloads/custom.lst" "$TMP_DIR/nf_custom.lst"; then
+			log "Downloaded (antifilter.network): nf_custom.lst"
+			updated=true
+		else
+			warn "Failed: nf_custom.lst"
+		fi
+	fi
+
 	$updated || true
 }
 
@@ -125,23 +135,85 @@ compare_and_update() {
 	log "Result: $updated updated, $unchanged unchanged"
 }
 
-# Step 4: list -> list_rsc (.rsc) per file.
+# Returns 0 if the given list base name (e.g. nf_govno) is enabled in UCI.
+list_enabled() {
+	local base="$1"
+	case "$base" in
+		ip)            src_enabled ip; return $? ;;
+		ipresolve)     src_enabled ipresolve; return $? ;;
+		ipsum)         src_enabled ipsum; return $? ;;
+		subnet)        src_enabled subnet; return $? ;;
+		allyouneed)    src_enabled allyouneed; return $? ;;
+		community)     src_enabled community; return $? ;;
+		nf_ip)         src_enabled nf_ip; return $? ;;
+		nf_ipsmart)    src_enabled nf_ipsmart; return $? ;;
+		nf_ipsum)      src_enabled nf_ipsum; return $? ;;
+		nf_subnet)     src_enabled nf_subnet; return $? ;;
+		nf_uablacklist) src_enabled nf_uablacklist; return $? ;;
+		nf_govno)      src_enabled nf_govno; return $? ;;
+		nf_custom)     src_enabled nf_custom; return $? ;;
+		nf_ip6)        src_enabled nf_ip6; return $? ;;
+	esac
+	return 1
+}
+
+# Step 3b: remove lists that are no longer selected (neither enabled in
+# UCI nor present in list_custom), so they stop generating routes.
+cleanup_disabled_lists() {
+	local removed=0 f base custom
+	for f in "$LIST_DIR"/*.lst; do
+		[ -f "$f" ] || continue
+		base=$(basename "$f")
+		if list_enabled "${base%.lst}"; then
+			continue
+		fi
+		custom="$LIST_CUSTOM_DIR/$base"
+		[ -f "$custom" ] && continue
+		rm -f "$f"
+		log "Removed disabled list: $base"
+		removed=$((removed+1))
+	done
+	if [ "$removed" -gt 0 ]; then
+		log "Removed $removed disabled lists"
+	fi
+}
+
+# Step 4: list -> list_rsc per file, split by address family.
 # For the BGP client role routes are sent via the wireguard interface;
 # the via_interface is substituted into each route line.
+# BIRD static instances support only one family, so the output is split
+# into <name>.v4.rsc and <name>.v6.rsc.
 process_lists() {
-	log "--- Processing lists -> list_rsc ---"
-	rm -f "$RSC_DIR"/*.rsc 2>/dev/null
+	log "--- Processing lists -> list_rsc (v4/v6) ---"
+	rm -f "$RSC_DIR"/*.v4.rsc "$RSC_DIR"/*.v6.rsc 2>/dev/null
 
-	local f name
+	local f name cnt
+	local v4file v6file
 	for f in "$LIST_DIR"/*.lst; do
 		[ -f "$f" ] || continue
 		name=$(basename "$f" .lst)
-		# strip comments/blank lines, append /32 to bare IPs, emit via-route
+		v4file="$RSC_DIR/$name.v4.rsc"
+		v6file="$RSC_DIR/$name.v6.rsc"
+		# strip comments/blank lines, normalize bare IPv4 -> /32 / IPv6 -> /128,
+		# emit via-route lines and split by family.
 		sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$f" \
-			| awk -v iface="$VIA_IFACE" '!/\// { $0=$0"/32" } { print "route " $0 " via \"" iface "\";" }' \
-			| sort -u > "$RSC_DIR/$name.rsc"
-		count=$(wc -l < "$RSC_DIR/$name.rsc")
-		log "Generated: $name.rsc ($count routes)"
+			| awk -v iface="$VIA_IFACE" '
+				{
+					if ($0 ~ /:/) { if ($0 !~ /\//) $0=$0"/128"; }
+					else          { if ($0 !~ /\//) $0=$0"/32";  }
+					print "route " $0 " via \"" iface "\";";
+				}' \
+			| sort -u \
+			| awk -v v4="$v4file" -v v6="$v6file" \
+				'$2 ~ /:/ { print > v6; next } { print > v4 }'
+		if [ -f "$v4file" ]; then
+			cnt=$(wc -l < "$v4file")
+			log "Generated: $name.v4.rsc ($cnt routes)"
+		fi
+		if [ -f "$v6file" ]; then
+			cnt=$(wc -l < "$v6file")
+			log "Generated: $name.v6.rsc ($cnt routes)"
+		fi
 	done
 }
 
@@ -591,21 +663,28 @@ AWK
 		"$TMP_DIR/blk_counts."*.txt 2>/dev/null || true
 }
 
+LOG_FILE="/var/log/bird-sync.log"
+
 main() {
 	log "=== BIRD2 List Sync Started ==="
 
 	mkdir -p "$LIST_DIR" "$RSC_DIR" "$LIST_CUSTOM_DIR" "$TMP_DIR" 2>/dev/null
 
+	# Clean stale tmp lists first so an old download never re-imports a
+	# now-disabled list into LIST_DIR / list_rsc.
+	rm -f "$TMP_DIR"/*.lst 2>/dev/null
+
 	load_global
 	sync_custom_lists
 	download_antifilter_lists
 	compare_and_update
+	cleanup_disabled_lists
 	process_lists
 	apply_blacklist
 
 	rm -f "$TMP_DIR"/*.lst 2>/dev/null
 
-	if /usr/sbin/birdc configure >/dev/null 2>&1; then
+	if [ -x /usr/sbin/birdc ] && /usr/sbin/birdc configure >/dev/null 2>&1; then
 		log "BIRD reloaded"
 	else
 		log "BIRD not running - config will be applied on start"
@@ -614,4 +693,5 @@ main() {
 	log "=== BIRD2 List Sync Completed ==="
 }
 
-main "$@"
+# Persistent log for the LuCI status page.
+main "$@" 2>&1 | tee -a "$LOG_FILE"

@@ -4,22 +4,26 @@
 		"read": {
 			"uci": [ "bird" ],
 			"ubus": {
-				"luci.bird": [ "status", "syncstatus" ],
+				"luci.bird": [ "status", "syncstatus", "configfile", "lists", "readList", "available", "selection", "netinfo", "template" ],
 				"service": [ "list" ]
 			},
 			"file": {
 				"/etc/bird/": [ "read" ],
+				"/etc/bird/list_custom/": [ "read" ],
+				"/etc/bird/blacklist/": [ "read" ],
 				"/var/log/bird-sync.log": [ "read" ]
 			}
 		},
 		"write": {
 			"uci": [ "bird" ],
 			"ubus": {
-				"luci.bird": [ "sync", "configure" ],
+				"luci.bird": [ "service", "sync", "writeList", "deleteList", "saveSources", "saveTemplate" ],
 				"service": [ "set", "add", "delete" ]
 			},
 			"file": {
-				"/etc/bird/": [ "write" ]
+				"/etc/bird/": [ "write" ],
+				"/etc/bird/list_custom/": [ "write" ],
+				"/etc/bird/blacklist/": [ "write" ]
 			}
 		}
 	}

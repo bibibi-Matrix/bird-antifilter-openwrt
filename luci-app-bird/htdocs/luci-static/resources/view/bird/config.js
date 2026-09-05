@@ -6,90 +6,46 @@ return L.view.extend({
 	render: function() {
 		var m, s, o;
 
-		m = new L.form.Map('bird', _('BIRD Antifilter'), _(
-			'Global BIRD daemon settings and BGP peers. ' +
-			'The daemon acts both as a BGP server (advertising the listed routes) ' +
-			'and as a BGP client (installing the listed routes into the kernel ' +
-			'routing table, sending the listed traffic through the wireguard/amnezia ' +
-			'interface). The default route stays on WAN.'));
+		m = new L.form.Map('bird', _('Настройки BIRD Antifilter'), _(
+			'Основные настройки демона BIRD. Демон работает в двух ролях: ' +
+			'BGP-сервер (раздаёт маршруты из списков внешним пирам) и ' +
+			'BGP-клиент (принимает маршруты от апстрим-пира и устанавливает ' +
+			'маршруты из списков в таблицу маршрутизации ядра). Трафик из ' +
+			'списков уходит через указанный интерфейс (обычно WireGuard/AmneziaWG), ' +
+			'остальной трафик остаётся на WAN.'));
 
-		/* ---- Global settings ---- */
-		s = m.section(form.NamedSection, 'global', 'bird', _('Global settings'));
+		s = m.section(form.NamedSection, 'global', 'bird', _('Общие настройки'));
 		s.anonymous = true;
 		s.addremove = false;
 
-		o = s.option(form.Flag, 'enabled', _('Enable'));
+		o = s.option(form.Flag, 'enabled', _('Включить сервис'));
 		o.rmempty = false;
 
-		o = s.option(form.Value, 'router_id', _('Router ID'));
+		o = s.option(form.Value, 'router_id', _('Router ID (идентификатор)'));
 		o.datatype = 'or(ipaddr, "auto")';
 		o.rmempty = false;
+		o.default = 'auto';
+		o.description = _('IP-адрес для идентификации BIRD. Значение "auto" — определить автоматически.');
 
-		o = s.option(form.Value, 'local_as', _('Local AS number'));
+		o = s.option(form.Value, 'local_as', _('Местный номер AS'));
 		o.datatype = 'range(1, 4294967295)';
 		o.rmempty = false;
 
-		o = s.option(form.Value, 'via_interface', _('Wireguard via interface'));
+		o = s.option(form.Value, 'via_interface', _('Интерфейс для маршрутов (via)'));
 		o.rmempty = false;
-		o.default = 'amneziawg0';
+		o.default = 'awg0';
+		o.description = _('Интерфейс, через который будет уходить трафик из списков. ' +
+			'Обычно это интерфейс WireGuard/AmneziaWG (например awg0, wg0).');
 
-		o = s.option(form.Flag, 'sync_cron', _('Enable periodic list sync'));
-		o.rmempty = false;
-
-		o = s.option(form.Value, 'cron_expr', _('Sync schedule (cron)'));
+		o = s.option(form.Value, 'port', _('Порт BGP (по умолчанию 179)'));
+		o.datatype = 'port';
 		o.rmempty = true;
-		o.default = '0 3 * * *';
+		o.default = '179';
 
-		/* ---- BGP peers ---- */
-		s = m.section(form.TypedSection, 'bgp_peer', _('BGP peers'));
-		s.anonymous = true;
-		s.addremove = true;
-		s.sortable = true;
-
-		s.tab('general', _('General'));
-		s.tab('settings', _('Settings'));
-
-		o = s.option(form.Flag, 'enabled', _('Enable peer'));
-		o.tab = 'general';
-		o.rmempty = false;
-
-		o = s.option(form.ListValue, 'role', _('Role'));
-		o.tab = 'general';
-		o.rmempty = false;
-		o.value('server', _('Server (advertise lists to peer)'));
-		o.value('client', _('Client (receive from peer, install in kernel)'));
-
-		o = s.option(form.Value, 'neighbor', _('Neighbor address'));
-		o.tab = 'general';
-		o.rmempty = false;
-		o.datatype = 'ipaddr';
-
-		o = s.option(form.Value, 'remote_as', _('Remote (peer) AS'));
-		o.tab = 'general';
-		o.rmempty = false;
-		o.datatype = 'range(1, 4294967295)';
-
-		o = s.option(form.Value, 'local_ip', _('Local address'));
-		o.tab = 'settings';
+		o = s.option(form.Value, 'hold_time', _('Время удержания BGP (сек)'));
+		o.datatype = 'range(3, 7200)';
 		o.rmempty = true;
-		o.datatype = 'ipaddr';
-
-		o = s.option(form.Flag, 'passive', _('Passive (wait for peer to connect)'));
-		o.tab = 'settings';
-		o.rmempty = true;
-
-		o = s.option(form.Flag, 'next_hop_self', _('Set next-hop-self on advertised routes'));
-		o.tab = 'settings';
-		o.rmempty = true;
-
-		/* ---- Blacklist ---- */
-		o = s.option(form.Flag, 'blacklist', _('Enable blacklist'));
-		o.rmempty = false;
-		o.default = '1';
-
-		o = s.option(form.Flag, 'blacklist_split', _('Split wide prefixes covered by blacklist'));
-		o.rmempty = false;
-		o.default = '1';
+		o.default = '240';
 
 		return m.render();
 	}

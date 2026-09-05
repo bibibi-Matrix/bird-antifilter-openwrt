@@ -5,15 +5,19 @@ config bird 'global'
 	option bird_dir '/etc/bird'
 	option list_dir '/etc/bird/list'
 	option rsc_dir '/etc/bird/list_rsc'
+	option via_interface 'awg0'
+	option port '179'
+	option hold_time '240'
+	option sync_cron '1'
+	option cron_expr '0 3 * * *'
 	option blacklist '1'
 	option blacklist_dir '/etc/bird/blacklist'
 	option blacklist_split '1'
-	option sync_cron '1'
-	option cron_expr '0 3 * * *'
-	option via_interface 'amneziawg0'
 
-# Role "server": advertise the listed routes to an external BGP peer.
-# The local daemon stays passive and waits for the peer to connect.
+# Role "server" (pasif): раздаёт маршруты из списков внешнему BGP-пиру.
+# Role "client": получает/экспортирует маршруты через апстрим-пир и
+# устанавливает местные статические маршруты в ядро (трафик из списков
+# уходит через via-интерфейс, default route остаётся на WAN).
 config bgp_peer 'peer1'
 	option enabled '1'
 	option role 'server'
@@ -22,10 +26,11 @@ config bgp_peer 'peer1'
 	option local_ip '192.168.34.2'
 	option passive '1'
 	option next_hop_self '1'
+	option export_kernel '0'
+	option port ''
+	option hold_time ''
+	option password ''
 
-# Role "client": talk to an upstream peer that the routes are exported
-# to, and install the local static routes into the kernel routing table
-# so they are used for forwarding (default route remains on WAN).
 config bgp_peer 'peer2'
 	option enabled '0'
 	option role 'client'
@@ -35,21 +40,29 @@ config bgp_peer 'peer2'
 	option passive '0'
 	option next_hop_self '1'
 	option export_kernel '1'
+	option port ''
+	option hold_time ''
+	option password ''
 
-# === Antifilter sources ===
+# === Antifilter источники ===
+# По умолчанию включены только "лёгкие" списки (~15-18 тыс. маршрутов):
+# allyouneed (объединённый), nf_subnet, nf_govno + свои списки list_custom.
+# Огромные списки (nf_ip ~100k, nf_ip6 ~127k, nf_ipsmart/ipsum ~21k) на
+# маломощных роутерах перегружают ядро и демон BIRD - включайте их точечно.
 config source 'antifilter'
 	option antifilter_download '1'
-	option antifilter_network '0'
+	option antifilter_network '1'
 	option ip '0'
 	option ipresolve '0'
 	option ipsum '0'
 	option subnet '0'
 	option allyouneed '1'
 	option community '0'
-	option nf_ip '1'
-	option nf_ipsmart '1'
-	option nf_ipsum '1'
+	option nf_ip '0'
+	option nf_ipsmart '0'
+	option nf_ipsum '0'
 	option nf_subnet '1'
-	option nf_uablacklist '1'
+	option nf_uablacklist '0'
 	option nf_govno '1'
-	option nf_ip6 '1'
+	option nf_custom '0'
+	option nf_ip6 '0'

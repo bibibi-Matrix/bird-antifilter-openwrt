@@ -9,5 +9,104 @@
 		"depends": {
 			"acl": [ "luci-app-bird" ]
 		}
+	},
+	"admin/services/bird/status": {
+		"title": "Главная",
+		"order": 10,
+		"action": {
+			"type": "view",
+			"path": "bird/status"
+		},
+		"depends": {
+			"acl": [ "luci-app-bird" ]
+		}
+	},
+	"admin/services/bird/config": {
+		"title": "Настройки",
+		"order": 20,
+		"action": {
+			"type": "view",
+			"path": "bird/config"
+		},
+		"depends": {
+			"acl": [ "luci-app-bird" ]
+		}
+	},
+	"admin/services/bird/peers": {
+		"title": "BGP-пиры",
+		"order": 30,
+		"action": {
+			"type": "view",
+			"path": "bird/peers"
+		},
+		"depends": {
+			"acl": [ "luci-app-bird" ]
+		}
+	},
+	"admin/services/bird/template": {
+		"title": "Шаблон конфигурации",
+		"order": 35,
+		"action": {
+			"type": "view",
+			"path": "bird/template"
+		},
+		"depends": {
+			"acl": [ "luci-app-bird" ]
+		}
+	},
+	"admin/services/bird/lists": {
+		"title": "Источники списков",
+		"order": 40,
+		"action": {
+			"type": "view",
+			"path": "bird/lists"
+		},
+		"depends": {
+			"acl": [ "luci-app-bird" ]
+		}
+	},
+	"admin/services/bird/customlists": {
+		"title": "Свои списки",
+		"order": 50,
+		"action": {
+			"type": "view",
+			"path": "bird/customlists"
+		},
+		"depends": {
+			"acl": [ "luci-app-bird" ]
+		}
+	},
+	"admin/services/bird/blacklist": {
+		"title": "Чёрный список",
+		"order": 60,
+		"action": {
+			"type": "view",
+			"path": "bird/blacklist"
+		},
+		"depends": {
+			"acl": [ "luci-app-bird" ]
+		}
+	},
+	"admin/services/bird/sync": {
+		"title": "Синхронизация",
+		"order": 70,
+		"action": {
+			"type": "view",
+			"path": "bird/sync"
+		},
+		"depends": {
+			"acl": [ "luci-app-bird" ]
+		}
+	},
+	"admin/services/bird/log": {
+		"title": "Журнал",
+		"order": 80,
+		"action": {
+			"type": "view",
+			"path": "bird/log"
+		},
+		"depends": {
+			"acl": [ "luci-app-bird" ]
+		}
 	}
 }
