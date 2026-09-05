@@ -82,6 +82,15 @@ return L.view.extend({
 		o.tab = 'settings';
 		o.rmempty = true;
 
+		/* ---- Blacklist ---- */
+		o = s.option(form.Flag, 'blacklist', _('Enable blacklist'));
+		o.rmempty = false;
+		o.default = '1';
+
+		o = s.option(form.Flag, 'blacklist_split', _('Split wide prefixes covered by blacklist'));
+		o.rmempty = false;
+		o.default = '1';
+
 		return m.render();
 	}
 });

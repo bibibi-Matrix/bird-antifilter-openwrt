@@ -10,6 +10,7 @@
 - **BGP-клиент**: локальные списки превращаются в статические маршруты BIRD и устанавливаются в таблицу маршрутизации ядра — трафик из списка уходит через wireguard/amneziawg-интерфейс, остальной остаётся на WAN (default route не затрагивается).
 - Автозагрузка списков с `antifilter.download` и `antifilter.network`.
 - Кастомные списки из папки проекта (`list_custom/*.lst`).
+- **Чёрный список** — IP/CIDR из `/etc/bird/blacklist/*.lst` исключаются из `.rsc`; запись внутри более широкого префикса **разбивает** его на sibling-префиксы (IPv4/IPv6, есть флаг `blacklist_split`).
 - Расписание синхронизации (cron) через UCI.
 - Полное управление через LuCI.
 
@@ -22,7 +23,7 @@ bird/                 # пакет демона (feed)
     etc/config/bird           # UCI-схема
     etc/uci-defaults/80_bird  # инициализация на первом старте
     etc/init.d/bird           # procd init + генератор bird.conf
-    usr/sbin/bird-sync.sh     # скачивание/сравнение/конвертация списков
+    usr/sbin/bird-sync.sh     # скачивание/сравнение/конвертация списков, blacklist
     usr/share/bird/list_custom/*.lst
 luci-app-bird/        # LuCI приложение (JS-view)
   Makefile
@@ -42,6 +43,9 @@ config bird 'global'
 	option via_interface 'amneziawg0'
 	option sync_cron '1'
 	option cron_expr '0 3 * * *'
+	option blacklist '1'           # применять чёрный список
+	option blacklist_dir '/etc/bird/blacklist'
+	option blacklist_split '1'     # разбивать широкие префиксы при попадании в них записей
 
 config bgp_peer 'peer1'
 	option enabled '1'
@@ -124,7 +128,8 @@ make package/feeds/birdwrt/bird/compile package/feeds/birdwrt/luci-app-bird/comp
 ```
 
 Генерируемый конфиг: `/etc/bird/bird.conf`.
-Рабочие каталоги: `/etc/bird/list`, `/etc/bird/list_rsc`, `/etc/bird/list_custom`.
+Рабочие каталоги: `/etc/bird/list`, `/etc/bird/list_rsc`, `/etc/bird/list_custom`,
+`/etc/bird/blacklist` (IP/CIDR по одной записи на строку, `#` — комментарий).
 
 ## Примечания
 

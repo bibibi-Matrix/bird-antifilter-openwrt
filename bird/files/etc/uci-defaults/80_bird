@@ -1,6 +1,6 @@
 #!/bin/sh
 
-mkdir -p /etc/bird/list /etc/bird/list_rsc /etc/bird/list_custom /var/run/bird
+mkdir -p /etc/bird/list /etc/bird/list_rsc /etc/bird/list_custom /etc/bird/blacklist /var/run/bird
 
 # Seed writable custom list dir from bundled samples (first boot only)
 if [ -d /usr/share/bird/list_custom ]; then
