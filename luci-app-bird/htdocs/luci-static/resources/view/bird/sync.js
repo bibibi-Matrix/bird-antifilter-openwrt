@@ -31,11 +31,11 @@ return L.view.extend({
 		o.default = '0 3 * * *';
 		o.rmempty = true;
 
-		var act = m.section(form.NamedSection, 'actions', 'surface', _('Actions'));
-		act.anonymous = true;
-		act.render = function() {
-			var box = ui.createWidget(null, { label: _('Actions') });
-			box.node.appendChild(
+		var output = E('pre', { 'class': 'cbi-section-node' });
+
+		return m.render().then(function(node) {
+			var box = E('div', { 'class': 'cbi-section' }, [
+				E('h3', { 'class': 'cbi-section-title' }, _('Actions')),
 				E('div', { 'class': 'cbi-page-actions' },
 					E('input', {
 						'type': 'button',
@@ -45,15 +45,15 @@ return L.view.extend({
 							callSync().then(function(res) {
 								var msg = res.code === 0 ? _('Synchronization finished') : _('Synchronization failed');
 								ui.addNotification(null, E('p', msg));
+								output.textContent = res.stdout || res.stderr || '';
 							});
 						}
-					})));
+					}))
+			]);
+			box.appendChild(output);
 
-			var output = E('pre', { 'class': 'cbi-section-node' });
-			box.node.appendChild(output);
-			return box;
-		};
-
-		return m.render();
+			node.appendChild(box);
+			return node;
+		});
 	}
 });

@@ -1,7 +1,6 @@
 'use strict';
 'require form';
 'require fs';
-'require ui';
 
 return L.view.extend({
 	render: function() {
@@ -36,20 +35,17 @@ return L.view.extend({
 			flag.rmempty = false;
 		});
 
-		var cs = m.section(form.NamedSection, 'customlists', 'surface', _('Custom lists'));
-		cs.anonymous = true;
-		cs.render = function() {
-			var box = ui.createWidget(null, { label: _('Custom lists') });
-			var list = fs.list('/etc/bird/list_custom').catch(function() { return []; });
-			return list.then(function(names) {
-				box.node.appendChild(
-					E('ul', { 'class': 'cbi-section-node' },
-						names.filter(function(n) { return n.indexOf('.lst') >= 0; })
-						    .map(function(n) { return E('li', {}, n); })));
-				return box;
+		return m.render().then(function(node) {
+			return fs.list('/etc/bird/list_custom').catch(function() { return []; }).then(function(names) {
+				node.appendChild(
+					E('div', { 'class': 'cbi-section' }, [
+						E('h3', { 'class': 'cbi-section-title' }, _('Custom lists')),
+						E('ul', { 'class': 'cbi-section-node' },
+							names.filter(function(n) { return n.indexOf('.lst') >= 0; })
+							    .map(function(n) { return E('li', {}, n); }))
+					]));
+				return node;
 			});
-		};
-
-		return m.render();
+		});
 	}
 });
