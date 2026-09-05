@@ -264,13 +264,6 @@ start_instance() {
 	# Append BGP peers.
 	gen_bgp_peer >> "$BIRD_CONF"
 
-	# Append the user-editable template (extra.conf) if it exists, so that
-	# hand-written BIRD statements (protocols, filters, tables) survive a
-	# config regeneration. Kept last so it can override the generated parts.
-	if [ -f /etc/bird/extra.conf ]; then
-		printf '\ninclude "/etc/bird/extra.conf";\n' >> "$BIRD_CONF"
-	fi
-
 	procd_open_instance bird2-antifilter
 	procd_set_param command "$BIRD" -c "$BIRD_CONF" -f -P "$BIRD_PID"
 	# Explicit procd respawn (threshold 3600s, timeout 5s, retry 5): retry

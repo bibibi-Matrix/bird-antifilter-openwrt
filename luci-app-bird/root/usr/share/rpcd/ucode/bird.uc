@@ -190,28 +190,6 @@ function netinfo(request) {
 	};
 }
 
-// ---- editable BIRD config template (bird.conf tail include) ----
-const EXTRA_CONF = '/etc/bird/extra.conf';
-
-function template(request) {
-	let out = '';
-	if (fs.stat(EXTRA_CONF))
-		out = fs.readfile(EXTRA_CONF) || '';
-	return { code: 0, content: out };
-}
-
-function saveTemplate(request) {
-	let argv = request.args || {};
-	let content = (argv.content == null) ? '' : ('' + argv.content);
-	let rc = fs.writefile(EXTRA_CONF, content) == null ? 1 : 0;
-	if (rc == 0 && isRunning())
-		rc = run('/usr/sbin/birdc configure >/dev/null 2>&1');
-	return {
-		code: rc,
-		error: rc == 0 ? '' : 'template saved, but bird reload failed (see log)'
-	};
-}
-
 // ---- custom & blacklist list files ----
 function lists(request) {
 	let custom = [];
@@ -375,8 +353,6 @@ return {
 		syncstatus:  { call: syncstatus },
 		configfile:  { call: configfile },
 		netinfo:     { call: netinfo },
-		template:    { call: template },
-		saveTemplate: { args: { content: 'content' }, call: saveTemplate },
 		lists:       { args: { blacklist_dir: 'blacklist_dir' }, call: lists },
 		readList:    { args: { name: 'name', kind: 'kind' }, call: readList },
 		writeList:   { args: { name: 'name', kind: 'kind', content: 'content' }, call: writeList },

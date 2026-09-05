@@ -4,7 +4,7 @@
 		"read": {
 			"uci": [ "bird" ],
 			"ubus": {
-				"luci.bird": [ "status", "syncstatus", "configfile", "lists", "readList", "available", "selection", "netinfo", "template" ],
+				"luci.bird": [ "status", "syncstatus", "configfile", "lists", "readList", "available", "selection", "netinfo" ],
 				"service": [ "list" ]
 			},
 			"file": {
@@ -17,7 +17,7 @@
 		"write": {
 			"uci": [ "bird" ],
 			"ubus": {
-				"luci.bird": [ "service", "sync", "writeList", "deleteList", "saveSources", "saveTemplate" ],
+				"luci.bird": [ "service", "sync", "writeList", "deleteList", "saveSources" ],
 				"service": [ "set", "add", "delete" ]
 			},
 			"file": {

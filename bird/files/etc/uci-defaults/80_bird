@@ -2,26 +2,6 @@
 
 mkdir -p /etc/bird/list /etc/bird/list_rsc /etc/bird/list_custom /etc/bird/blacklist /var/run/bird
 
-# User-editable BIRD template, included at the end of generated /etc/bird/bird.conf
-if [ ! -f /etc/bird/extra.conf ]; then
-	cat > /etc/bird/extra.conf <<'EOF'
-# ============================================================
-#  Пользовательский шаблон конфигурации BIRD (extra.conf)
-#  Содержимое этого файла подключается в КОНЕЦ /etc/bird/bird.conf
-#  после автоматически сгенерированных секций, поэтому может их
-#  дополнять или переопределять (фильтры, протоколы, таблицы...).
-#  Сохранить и применить -> LuCI "BIRD Antifilter > Шаблон".
-# ============================================================
-#
-# Пример: собственный static-маршрут
-#
-# protocol static my_static {
-#     ipv4;
-#     route 10.99.0.0/16 via 10.137.9.1;
-# }
-EOF
-fi
-
 # Наш сервис bird2-antifilter сам управляет демоном BIRD2 —
 # отключаем штатный init от пакета bird2, чтобы не было двух экземпляров.
 [ -x /etc/init.d/bird ] && /etc/init.d/bird disable 2>/dev/null
