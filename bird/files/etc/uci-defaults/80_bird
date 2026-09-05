@@ -2,6 +2,10 @@
 
 mkdir -p /etc/bird/list /etc/bird/list_rsc /etc/bird/list_custom /etc/bird/blacklist /var/run/bird
 
+# Наш сервис bird2-antifilter сам управляет демоном BIRD2 —
+# отключаем штатный init от пакета bird2, чтобы не было двух экземпляров.
+[ -x /etc/init.d/bird ] && /etc/init.d/bird disable 2>/dev/null
+
 # Seed writable custom list dir from bundled samples (first boot only)
 if [ -d /usr/share/bird/list_custom ]; then
 	for f in /usr/share/bird/list_custom/*.lst; do

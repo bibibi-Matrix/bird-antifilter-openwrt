@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=bird
-PKG_VERSION:=1.1
+PKG_VERSION:=1.2
 PKG_RELEASE:=1
 
 PKG_BUILD_DEPENDS:=
@@ -37,7 +37,7 @@ endef
 
 define Package/bird/install
 	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/etc/init.d/bird $(1)/etc/init.d/bird
+	$(INSTALL_BIN) ./files/etc/init.d/bird2-antifilter $(1)/etc/init.d/bird2-antifilter
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DATA) ./files/etc/config/bird $(1)/etc/config/bird
 	$(INSTALL_DIR) $(1)/etc/uci-defaults

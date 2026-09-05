@@ -124,6 +124,18 @@ gen_bgp_peer() {
 	done
 }
 
+# Schedule periodic list sync via cron (uci bird.global.sync_cron/cron_expr).
+setup_cron() {
+	local on expr
+	on=$(get_cfg sync_cron)
+	[ "$on" = "1" ] || return 0
+	expr=$(get_cfg cron_expr)
+	[ -n "$expr" ] || expr="0 3 * * *"
+	[ -d /etc/crontabs ] || mkdir -p /etc/crontabs
+	grep -q 'bird-sync.sh' /etc/crontabs/root 2>/dev/null || \
+		echo "$expr /usr/sbin/bird-sync.sh >/dev/null 2>&1" >> /etc/crontabs/root
+}
+
 start_service() {
 	setup_cron
 	start_instance
@@ -181,7 +193,7 @@ boot() {
 }
 
 reload_service() {
-	procd_kill bird 2>/dev/null
+	procd_kill bird2-antifilter 2>/dev/null
 	start
 }
 

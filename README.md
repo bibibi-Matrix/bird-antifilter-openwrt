@@ -22,7 +22,7 @@ bird/                 # пакет демона (feed)
   files/
     etc/config/bird           # UCI-схема
     etc/uci-defaults/80_bird  # инициализация на первом старте
-    etc/init.d/bird           # procd init + генератор bird.conf
+    etc/init.d/bird2-antifilter   # procd init + генератор bird.conf
     usr/sbin/bird-sync.sh     # скачивание/сравнение/конвертация списков, blacklist
     usr/share/bird/list_custom/*.lst
 luci-app-bird/        # LuCI приложение (JS-view)
@@ -122,9 +122,9 @@ make package/feeds/birdwrt/bird/compile package/feeds/birdwrt/luci-app-bird/comp
 ## Управление демоном
 
 ```sh
-/etc/init.d/bird start|stop|restart|reload
-/etc/init.d/bird status    # birdc show protocols
-/etc/init.d/bird sync      # запуск синхронизации списков
+/etc/init.d/bird2-antifilter start|stop|restart|reload
+/etc/init.d/bird2-antifilter status    # birdc show protocols
+/etc/init.d/bird2-antifilter sync      # запуск синхронизации списков
 ```
 
 Генерируемый конфиг: `/etc/bird/bird.conf`.
@@ -134,6 +134,7 @@ make package/feeds/birdwrt/bird/compile package/feeds/birdwrt/luci-app-bird/comp
 ## Примечания
 
 - Требуются пакеты: `bird2`, `bird2c`, `curl`/`wget`, `iproute2`.
+- Собственный init `bird2-antifilter` (не конфликтует с системным `/etc/init.d/bird` из пакета `bird2`); при первом старте штатный init от bird2 отключается.
 - Для wireguard установите штатный `wireguard` либо `amneziawg` (интерфейс `amneziawg0`), укажите имя интерфейса в `bird.global.via_interface`.
 - Пакет рассчитан на OpenWrt 24.10+ (JS-view LuCI, ucode rpcd).
 
